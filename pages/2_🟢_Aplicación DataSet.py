@@ -101,7 +101,7 @@ with tab_analisis_exploratorio:
     st.markdown('''## Análisis''')
 
     # Primeras 5 filas del DF
-    st.markdown('''#### Primeras 5 Filas''')
+    st.markdown('''#### Primeras 5 Crimenes''')
     st.dataframe(df.head())
 
     # Muestra la cantidad de filas y columnas del DataFrame

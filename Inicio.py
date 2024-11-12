@@ -1,14 +1,6 @@
 import streamlit as st
 from PIL import Image
-import random 
-from faker import Faker
-import streamlit as st 
-import pandas as pd  
-import seaborn as sns
-import matplotlib.pyplot as plt
-import firebase_admin  
-from firebase_admin import credentials, firestore
-from datetime import datetime, timedelta
+
 
 st.set_page_config(layout="wide", page_title="Mapping Demo", page_icon="🌍")
 

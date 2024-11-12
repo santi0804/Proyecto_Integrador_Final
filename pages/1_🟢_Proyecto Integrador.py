@@ -24,7 +24,7 @@ tad_descripcion, tab_Generador, tab_datos, tab_Análisis_Exploratorio, tab_Filtr
 )
 
 #----------------------------------------------------------
-#Descripciòn del sitio.
+#Descripciòn del sitio.// nuevos cambios
 #----------------------------------------------------------
 with tad_descripcion:      
 
