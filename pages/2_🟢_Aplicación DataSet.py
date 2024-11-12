@@ -158,15 +158,22 @@ with tab_filtro_final_dinamico:
     
     # Verificar si hay datos en el filtro para mostrar gráficos
     if not filtered_data.empty:
+        
         # Crear gráficos
-        fig1 = px.bar(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[1], title="Gráfico de Barras")
-        fig2 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[1], title="Gráfico de Líneas")
+        fig1 = px.bar(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[0], title="Gráfico de Barras")
+        fig2 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[1], title="Gráfico de Lìneas")
+        fig3 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[3], title="Gráfico de Barras")
+        fig4 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[5], title="Gráfico de Líneas")
 
         # Colocar los gráficos en dos columnas
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.plotly_chart(fig1, use_container_width=True)
         with col2:
             st.plotly_chart(fig2, use_container_width=True)
+        with col3:
+            st.plotly_chart(fig3, use_container_width=True)
+        with col4:
+            st.plotly_chart(fig4, use_container_width=True)
     else:
         st.write("No se encontraron datos para los criterios de filtro seleccionados.")
