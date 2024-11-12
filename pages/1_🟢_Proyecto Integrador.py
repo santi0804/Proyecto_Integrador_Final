@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 # Configurar la página
 st.set_page_config(layout="wide")
 
-# Inicialización de la aplicación y Firestore
+
 if not firebase_admin._apps:    
     firebase_credentials = st.secrets["FIREBASE_CREDENTIALS"]
     secrets_dict = firebase_credentials.to_dict()
@@ -107,7 +107,7 @@ with tab_Generador:
     num_records = st.number_input('Número de registros a generar', min_value=1, max_value=5000, value=5000)
     
     if st.button('Generar Registros de Empleados'):
-        # Genera y muestra los registros
+        
         df = generate_employee_records(num_records)
         st.dataframe(df)
         st.session_state.df = df  # Guardar los datos en el estado de sesión
