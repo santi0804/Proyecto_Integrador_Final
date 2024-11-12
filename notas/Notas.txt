@@ -1,0 +1,55 @@
+DR_NO  [# Reporte]- Número de Reporte (DR). Identificador único de cada reporte de incidente.
+
+Date Rptd [] - Fecha de Reporte. La fecha en que se reportó el incidente.
+
+DATE OCC - Fecha de Ocurrencia. La fecha en que ocurrió el incidente.
+
+TIME OCC - Hora de Ocurrencia. La hora exacta en que ocurrió el incidente.
+
+AREA - Código de Área. Código numérico que identifica el área geográfica de la ciudad donde ocurrió el incidente.
+
+AREA NAME - Nombre del Área. Nombre de la zona o área donde ocurrió el incidente.
+
+Rpt Dist No - Número de Distrito de Reporte. Número de distrito al que se asignó el reporte.
+
+Part 1-2 - Clasificación del Crimen (Parte 1-2). Clasificación del incidente, donde el crimen se cataloga como de "Parte 1" (más grave) o "Parte 2" (menos grave).
+
+Crm Cd - Código del Crimen. Código numérico que representa el tipo específico de crimen.
+
+Crm Cd Desc - Descripción del Código del Crimen. Descripción textual del tipo específico de crimen.
+
+Mocodes - Código Modus Operandi (MO). Códigos que describen el modo de operación o los detalles específicos de cómo se realizó el crimen.
+
+Vict Age - Edad de la Víctima. Edad de la persona afectada por el crimen.
+
+Vict Sex - Sexo de la Víctima. Género de la persona afectada por el crimen.
+
+Vict Descent - Origen de la Víctima. Raza o etnia de la persona afectada por el crimen.
+
+Premis Cd - Código del Lugar. Código numérico que representa el lugar donde ocurrió el incidente.
+
+Premis Desc - Descripción del Lugar. Descripción del tipo de lugar donde ocurrió el incidente (por ejemplo, parque, hogar).
+
+Weapon Used Cd - Código de Arma Usada. Código que representa el tipo de arma utilizada en el crimen, si aplicable.
+
+Weapon Desc - Descripción de Arma. Descripción del tipo de arma usada en el incidente.
+
+Status - Estado. Código que describe el estado del incidente (por ejemplo, activo, resuelto).
+
+Status Desc - Descripción del Estado. Descripción detallada del estado del caso o incidente.
+
+Crm Cd 1 - Código de Crimen 1. Código principal que clasifica el crimen cometido.
+
+Crm Cd 2 - Código de Crimen 2. Código secundario para clasificar crímenes adicionales en el mismo incidente.
+
+Crm Cd 3 - Código de Crimen 3. Tercer código de clasificación para crímenes adicionales.
+
+Crm Cd 4 - Código de Crimen 4. Cuarto código de clasificación para crímenes adicionales.
+
+LOCATION - Ubicación. Dirección o coordenadas donde ocurrió el crimen.
+
+Cross Street - Calle Cruzada. Nombre de la calle que cruza o está cerca del lugar del incidente.
+
+LAT - Latitud. Coordenada de latitud de la ubicación del crimen.
+
+LON - Longitud. Coordenada de longitud de la ubicación del crimen.
