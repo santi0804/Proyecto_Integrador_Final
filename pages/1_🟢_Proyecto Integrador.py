@@ -167,7 +167,7 @@ with tab_datos:
 with tab_Análisis_Exploratorio:
     if 'df' in st.session_state:
         df = st.session_state.df  # Usar los datos guardados en el estado de sesión
-        st.title("Análisis de horarios")
+        st.title("Análisis de Horarios")
         st.write(df.head())  # Mostrar las primeras 5 filas
 
         st.markdown("### Análisis Estadístico:")
@@ -175,21 +175,40 @@ with tab_Análisis_Exploratorio:
 
         st.markdown("### Gráficas:")
 
-        # Ajustar el tamaño de la figura para hacerla más pequeña
-        fig, ax = plt.subplots(figsize=(6, 3))  # Cambia el tamaño según tus necesidades
-        sns.histplot(df['Horas Trabajadas'], kde=True, ax=ax)
+        # Crear una figura con dos subgráficas (una al lado de la otra)
+        fig, (ax1, ax2) = plt.subplots(figsize=(12, 6), ncols=2)
 
-        # Ajustar los elementos de la gráfica
-        ax.set_title("Distribución de Horas Trabajadas", fontsize=10)  # Título más pequeño
-        ax.set_xlabel("Horas Trabajadas", fontsize=8)  # Etiqueta X más pequeña
-        ax.set_ylabel("Frecuencia", fontsize=8)  # Etiqueta Y más pequeña
+        # Primera gráfica: Distribución de Horas Trabajadas
+        sns.histplot(df['Horas Trabajadas'], kde=True, ax=ax1, color='skyblue')
+        ax1.set_title("Distribución de Horas Trabajadas", fontsize=12)
+        ax1.set_xlabel("Horas Trabajadas", fontsize=10)
+        ax1.set_ylabel("Frecuencia", fontsize=10)
 
-        # Ajustar la visualización de los ejes para que no se solapen
+        # Filtrar datos de empleados con horas extras
+        df_extras = df[df['Horas Extras'] > 0]  # Filtra los empleados con horas extras mayores a 0
+
+        # Extraer el año de la columna 'Fecha'
+        df_extras['Año'] = pd.to_datetime(df_extras['Fecha']).dt.year  # Extrae el año de la fecha
+
+        # Segunda gráfica: Tendencia de Empleados con Horas Extras
+        sns.lineplot(
+            data=df_extras,
+            x="Año",  # Usar el año extraído de la columna 'Fecha'
+            y="Horas Extras",  # Mostrar las horas extras
+            hue="Nombre",  # Diferenciar por empleado (Nombre)
+            palette="coolwarm",
+            ax=ax2  # Especificamos el eje para la gráfica
+        )
+        ax2.set_xlabel("Año", fontsize=10)
+        ax2.set_ylabel("Horas Extras", fontsize=10)
+        ax2.set_title("Tendencia de Horas Extras por Empleado y Año", fontsize=12)
+
+        # Ajuste del layout para que no se superpongan
         plt.tight_layout()
 
-        # Mostrar la gráfica
+        # Mostrar las gráficas
         st.pyplot(fig)
-
+        
 #----------------------------------------------------------
 # Filtro Final Dinámico
 #----------------------------------------------------------
