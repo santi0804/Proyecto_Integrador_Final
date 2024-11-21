@@ -10,10 +10,16 @@ st.title("CHRONOS MANAGER")
 st.subheader("GESTOR DE HORARIOS, CONTROL DE ACCESOS Y ANALIZADOR DE DATOS")
 st.subheader("Brindamos soluciones a las gestiones administrativas con nuestro equipo Alpha Developers")
 
-image_path = "./static/control acceso.png"  # Reemplaza con la ruta de la foto
-image = Image.open(image_path)  # Imagen de fondo
-horizontal_image = image.resize((1100, 350)) 
-st.image(horizontal_image) 
+# Configuración de la imagen
+image_path = "./static/logo.chronos.jpeg"  # Ruta de la imagen
+image = Image.open(image_path)
+square_image = image.resize((500, 500))  # Redimensionar la imagen
+
+# Crear columnas: espacios vacíos + columna para la imagen
+col1, col2, col3, col4,col5 = st.columns([1, 2, 3, 4, 5])  # Ajusta proporciones para posicionar
+
+with col3:  # Colocar imagen en la última columna (hacia la derecha)
+    st.image(square_image, use_column_width=False, caption="")
 
 
 st.header("Equipo Alpha Developers")   # Integrantes
