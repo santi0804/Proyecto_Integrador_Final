@@ -1,84 +1,44 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
+from google.cloud import aiplatform
 
-# Generar datos simulados
-ciudades = ["Bogotá", "Medellín", "Barranquilla", "Cali"]
-meses = pd.date_range(start="2024-01-01", end="2024-12-01", freq="MS")
-data = []
+# Configurar Vertex AI
+PROJECT_ID = "tu-proyecto-id"  # Reemplaza con el ID de tu proyecto de Google Cloud
+LOCATION = "us-central1"  # Ubicación del modelo
+MODEL_NAME = "tu-modelo-id"  # ID del modelo en Google AI Studio
+ENDPOINT_ID = "tu-endpoint-id"  # Endpoint configurado en Google AI
+aiplatform.init(project=PROJECT_ID, location=LOCATION)
 
-for ciudad in ciudades:
-    for mes in meses:
-        horas_trabajadas = np.random.randint(35, 45)
-        horas_extras = np.random.randint(2, 10)
-        ausentismo = round(np.random.uniform(1, 10), 2)
-        productividad = round(horas_trabajadas / (horas_trabajadas + horas_extras) * 100, 2)
-        causa = np.random.choice(["Enfermedad", "Licencia", "Accidente"])
+def obtener_respuesta_google(pregunta, contexto):
+    """
+    Enviar pregunta y contexto a un modelo de Vertex AI y obtener la respuesta.
+    """
+    try:
+        # Crear cliente de endpoint
+        endpoint = aiplatform.Endpoint(endpoint_name=f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}")
 
-        data.append([ciudad, mes, horas_trabajadas, horas_extras, ausentismo, productividad, causa])
+        # Enviar solicitud al modelo
+        instances = [{"input": f"{contexto}\nPregunta: {pregunta}"}]
+        response = endpoint.predict(instances=instances)
 
-# Crear DataFrame
-df = pd.DataFrame(data, columns=["Ciudad", "Fecha", "Horas Trabajadas", "Horas Extras", "Tasa de Ausentismo (%)", "Productividad (%)", "Causa"])
+        # Procesar la respuesta
+        return response.predictions[0] if response.predictions else "No se recibió respuesta."
+    except Exception as e:
+        return f"Error al procesar la solicitud: {e}"
 
-# Streamlit UI
+# Streamlit: Configuración de la interfaz
 st.title("CHRONOS MANAGER - Dashboard")
-st.sidebar.header("Filtros")
-ciudad_seleccionada = st.sidebar.selectbox("Selecciona una ciudad:", ["Todas"] + ciudades)
-mes_seleccionado = st.sidebar.selectbox("Selecciona un mes:", ["Todos"] + meses.strftime("%Y-%m").tolist())
 
-# Filtrar datos
-df_filtrado = df.copy()
-if ciudad_seleccionada != "Todas":
-    df_filtrado = df_filtrado[df_filtrado["Ciudad"] == ciudad_seleccionada]
-if mes_seleccionado != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Fecha"].dt.strftime("%Y-%m") == mes_seleccionado]
+st.write("### Asistente Gemini IA")
+pregunta_usuario = st.text_input("Haz una pregunta sobre el proyecto o los datos:")
 
-# Mostrar datos filtrados
-st.write("### Datos Filtrados")
-st.dataframe(df_filtrado)
+contexto = """
+Este proyecto se llama 'CHRONOS MANAGER'. La información del componente principal incluye datos relacionados con horas trabajadas, ausentismo y productividad en diversas áreas.
+"""
 
-# Asegurar que las columnas sean numéricas para el cálculo de la media
-numerical_cols = df_filtrado.select_dtypes(include=["number"]).columns
-
-# Manejar valores nulos
-df_filtrado = df_filtrado.fillna(0)
-
-# Agrupar y calcular la media
-df_grouped = df_filtrado.groupby("Ciudad")[numerical_cols].mean().reset_index()
-
-# Gráficos interactivos
-st.write("### Gráficos Interactivos")
-fig = px.line(df_filtrado, x="Fecha", y="Tasa de Ausentismo (%)", color="Ciudad", title="Evolución del Ausentismo")
-st.plotly_chart(fig)
-
-fig_barras = px.bar(df_filtrado, x="Ciudad", y=["Horas Trabajadas", "Horas Extras"], title="Horas Trabajadas vs Extras", barmode="group")
-st.plotly_chart(fig_barras)
-
-# Gráfico de Productividad
-fig_radar = px.line_polar(
-    df_grouped, 
-    r="Productividad (%)", 
-    theta="Ciudad", 
-    line_close=True, 
-    title="Índice de Productividad por Ciudad"
-)
-st.plotly_chart(fig_radar)
-
-# Botón de exportar datos
-if st.button("Exportar datos"):
-    df_filtrado.to_csv("datos_chronos_manager.csv", index=False)
-    st.success("¡Datos exportados con éxito!")
-    
-    # Crear un gráfico de barras para comparar la productividad de las ciudades
-fig_productividad = px.bar(
-    df_grouped, 
-    x="Ciudad", 
-    y="Productividad (%)", 
-    title="Comparación de la Productividad por Ciudad", 
-    color="Ciudad",
-    labels={"Productividad (%)": "Productividad (%)", "Ciudad": "Ciudad"},
-    color_discrete_sequence=px.colors.qualitative.Set2
-)
-
-st.plotly_chart(fig_productividad)
+if st.button("Preguntar"):
+    if pregunta_usuario.strip():
+        respuesta = obtener_respuesta_google(pregunta_usuario, contexto)
+        st.write("### Respuesta")
+        st.write(respuesta)
+    else:
+        st.warning("Por favor, ingresa una pregunta.")

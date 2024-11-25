@@ -23,7 +23,7 @@ else:
 
 # Tabs para diferentes análisis
 tab_descripcion, tab_analisis_exploratorio, tab_filtrado_basico, tab_filtro_final_dinamico = st.tabs(
-    ["Descripción", "Análisis Exploratorio", "Filtrado Básico", "Filtro Final Dinámico"]
+    ["Descripción", "Análisis Exploratorio", " ", "Filtro Final Dinámico"]
 )
 
 #----------------------------------------------------------
@@ -119,17 +119,6 @@ with tab_analisis_exploratorio:
     # Muestra un resumen estadístico de las columnas numéricas
     st.subheader("Resumen Estadístico de Columnas Numéricas")
     st.write(df.describe())
-
-#----------------------------------------------------------
-# Filtrado Básico
-#----------------------------------------------------------
-with tab_filtrado_basico:
-    st.markdown('''## Filtro Básico''')
-    column = st.selectbox("Selecciona la columna para filtrar", options=df.columns, key="selectbox1")
-    value = st.text_input(f"Introduce el valor para filtrar en {column}", key="text_input1")
-    if value:
-        filtered_data = df[df[column] == value]
-        st.dataframe(filtered_data)
 
 # ----------------------------------------------------------
 # Filtro Final Dinámico con Gráficas
