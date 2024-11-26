@@ -22,8 +22,8 @@ else:
     df = cargar_archivo_en_chunks('./static/datasets/mortality.csv')
 
 # Tabs para diferentes análisis
-tab_descripcion, tab_analisis_exploratorio, tab_filtrado_basico, tab_filtro_final_dinamico = st.tabs(
-    ["Descripción", "Análisis Exploratorio", "Filtrado Básico", "Filtro Final Dinámico"]
+tab_descripcion, tab_analisis_exploratorio, tab_filtro_final_dinamico = st.tabs(
+    ["Descripción", "Análisis Exploratorio","Filtro Final Dinámico"]
 )
 
 #----------------------------------------------------------
@@ -120,60 +120,66 @@ with tab_analisis_exploratorio:
     st.subheader("Resumen Estadístico de Columnas Numéricas")
     st.write(df.describe())
 
-#----------------------------------------------------------
-# Filtrado Básico
-#----------------------------------------------------------
-with tab_filtrado_basico:
-    st.markdown('''## Filtro Básico''')
-    column = st.selectbox("Selecciona la columna para filtrar", options=df.columns, key="selectbox1")
-    value = st.text_input(f"Introduce el valor para filtrar en {column}", key="text_input1")
-    if value:
-        filtered_data = df[df[column] == value]
-        st.dataframe(filtered_data)
 
 # ----------------------------------------------------------
-# Filtro Final Dinámico con Gráficas
+# Filtro Final Dinámico con Gráficas Mejoradas
 # ----------------------------------------------------------
 with tab_filtro_final_dinamico:
     st.markdown(''' ## Filtro Final Dinámico''')
     st.markdown("""
-    * Muestra un resumen dinámico del DataFrame filtrado.
+    * Muestra un resumen dinámico del DataFrame filtrado y gráficos analíticos.
     """)
-    
-    st.dataframe(df)
-    
+
     # Filtro básico por columna y valor
     column = st.selectbox("Selecciona la columna para filtrar", options=df.columns, key="selectbox2")
     value = st.text_input(f"Introduce el valor para filtrar en {column}", key="text_input2")
     
     # Filtrar el DataFrame según la entrada
-    if value:
-        filtered_data = df[df[column] == value]
-    else:
-        filtered_data = df 
+    filtered_data = df[df[column] == value] if value else df 
 
-
-    st.subheader("Datos Filtrados")
-    st.dataframe(filtered_data)
+    # Rango adicional para limitar los datos (si la columna numérica existe)
+    numeric_column = st.selectbox(
+        "Selecciona una columna numérica para definir un rango", 
+        options=[col for col in filtered_data.columns if pd.api.types.is_numeric_dtype(filtered_data[col])],
+        key="numeric_column"
+    )
     
+    if numeric_column:
+        min_val, max_val = st.slider(
+            f"Selecciona el rango de {numeric_column}", 
+            float(filtered_data[numeric_column].min()), 
+            float(filtered_data[numeric_column].max()), 
+            (float(filtered_data[numeric_column].min()), float(filtered_data[numeric_column].max())),
+            key="range_slider"
+        )
+        filtered_data = filtered_data[(filtered_data[numeric_column] >= min_val) & (filtered_data[numeric_column] <= max_val)]
+
+    # Mostrar tabla filtrada
+    st.subheader("Tabla de Datos")
+    st.dataframe(filtered_data.head(10))  # Mostrar solo las primeras 10 filas
+
     # Verificar si hay datos en el filtro para mostrar gráficos
     if not filtered_data.empty:
-        
-        # Crear gráficos
-        fig1 = px.bar(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[0], title="Gráfico de Barras")
-        fig2 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[1], title="Gráfico de Lìneas")
-        fig3 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[3], title="Gráfico de Barras")
-        fig4 = px.line(filtered_data, x=filtered_data.columns[0], y=filtered_data.columns[5], title="Gráfico de Líneas")
+        st.subheader("Gráficas Analíticas")
 
-        # Colocar los gráficos en dos columnas
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.plotly_chart(fig1, use_container_width=True)
-        with col2:
-            st.plotly_chart(fig2, use_container_width=True)
-        with col3:
-            st.plotly_chart(fig3, use_container_width=True)
-        with col4:
-            st.plotly_chart(fig4, use_container_width=True)
+        # Crear y mostrar 6 gráficas con diferentes combinaciones de ejes
+        graficas = [
+            {"x": filtered_data.columns[0], "y": filtered_data.columns[1], "title": "Gráfico 1: Comparativa"},
+            {"x": filtered_data.columns[0], "y": filtered_data.columns[2], "title": "Gráfico 2: Tendencias"},
+            {"x": filtered_data.columns[1], "y": filtered_data.columns[3], "title": "Gráfico 3: Relación 1 vs 3"},
+            {"x": filtered_data.columns[1], "y": filtered_data.columns[4], "title": "Gráfico 4: Relación 1 vs 4"},
+            {"x": filtered_data.columns[2], "y": filtered_data.columns[3], "title": "Gráfico 5: Relación 2 vs 3"},
+            {"x": filtered_data.columns[2], "y": filtered_data.columns[4], "title": "Gráfico 6: Relación 2 vs 4"}
+        ]
+
+        for grafica in graficas:
+            fig = px.bar(
+                filtered_data, 
+                x=grafica["x"], 
+                y=grafica["y"], 
+                title=grafica["title"], 
+                labels={"x": grafica["x"], "y": grafica["y"]}
+            )
+            st.plotly_chart(fig, use_container_width=True)
     else:
         st.write("No se encontraron datos para los criterios de filtro seleccionados.")
