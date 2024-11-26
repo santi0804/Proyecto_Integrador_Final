@@ -1,84 +1,171 @@
 import streamlit as st
+import google.generativeai as genai
 import pandas as pd
-import numpy as np
 import plotly.express as px
 
-# Generar datos simulados
-ciudades = ["Bogotá", "Medellín", "Barranquilla", "Cali"]
-meses = pd.date_range(start="2024-01-01", end="2024-12-01", freq="MS")
-data = []
+# Configuración de la API de Generative AI
+genai.configure(api_key='AIzaSyA_y4aB3PUdc5SIUGtH5rnU73vVFlVchd0')
+modelo = genai.GenerativeModel("gemini-1.5-flash")
 
-for ciudad in ciudades:
-    for mes in meses:
-        horas_trabajadas = np.random.randint(35, 45)
-        horas_extras = np.random.randint(2, 10)
-        ausentismo = round(np.random.uniform(1, 10), 2)
-        productividad = round(horas_trabajadas / (horas_trabajadas + horas_extras) * 100, 2)
-        causa = np.random.choice(["Enfermedad", "Licencia", "Accidente"])
+# Definir datos de categorías de horarios
+datos_horarios = {
+    "trabajo": {
+        "color": "#3498db",  # Azul
+        "imagen": "https://icons.iconarchive.com/icons/paomedia/small-n-flat/128/alarm-clock-icon.png",
+        "icono": "🕒",
+        "descripcion": "Horas de trabajo programadas",
+        "ejemplos": ["Entrada", "Salida", "Horas Extra"]
+    },
+    "ausencias": {
+        "color": "#e74c3c",  # Rojo
+        "imagen": "https://icons.iconarchive.com/icons/paomedia/small-n-flat/128/cancel-icon.png",
+        "icono": "❌",
+        "descripcion": "Registros de ausencias o permisos",
+        "ejemplos": ["Permiso", "Vacaciones", "Licencia"]
+    },
+    "horas_extra": {
+        "color": "#2ecc71",  # Verde
+        "imagen": "https://icons.iconarchive.com/icons/paomedia/small-n-flat/128/clock-icon.png",
+        "icono": "⏰",
+        "descripcion": "Horas trabajadas fuera del horario regular",
+        "ejemplos": ["Horas extra en la mañana", "Horas extra en la noche"]
+    }
+}
 
-        data.append([ciudad, mes, horas_trabajadas, horas_extras, ausentismo, productividad, causa])
-
-# Crear DataFrame
-df = pd.DataFrame(data, columns=["Ciudad", "Fecha", "Horas Trabajadas", "Horas Extras", "Tasa de Ausentismo (%)", "Productividad (%)", "Causa"])
-
-# Streamlit UI
-st.title("CHRONOS MANAGER - Dashboard")
-st.sidebar.header("Filtros")
-ciudad_seleccionada = st.sidebar.selectbox("Selecciona una ciudad:", ["Todas"] + ciudades)
-mes_seleccionado = st.sidebar.selectbox("Selecciona un mes:", ["Todos"] + meses.strftime("%Y-%m").tolist())
-
-# Filtrar datos
-df_filtrado = df.copy()
-if ciudad_seleccionada != "Todas":
-    df_filtrado = df_filtrado[df_filtrado["Ciudad"] == ciudad_seleccionada]
-if mes_seleccionado != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Fecha"].dt.strftime("%Y-%m") == mes_seleccionado]
-
-# Mostrar datos filtrados
-st.write("### Datos Filtrados")
-st.dataframe(df_filtrado)
-
-# Asegurar que las columnas sean numéricas para el cálculo de la media
-numerical_cols = df_filtrado.select_dtypes(include=["number"]).columns
-
-# Manejar valores nulos
-df_filtrado = df_filtrado.fillna(0)
-
-# Agrupar y calcular la media
-df_grouped = df_filtrado.groupby("Ciudad")[numerical_cols].mean().reset_index()
-
-# Gráficos interactivos
-st.write("### Gráficos Interactivos")
-fig = px.line(df_filtrado, x="Fecha", y="Tasa de Ausentismo (%)", color="Ciudad", title="Evolución del Ausentismo")
-st.plotly_chart(fig)
-
-fig_barras = px.bar(df_filtrado, x="Ciudad", y=["Horas Trabajadas", "Horas Extras"], title="Horas Trabajadas vs Extras", barmode="group")
-st.plotly_chart(fig_barras)
-
-# Gráfico de Productividad
-fig_radar = px.line_polar(
-    df_grouped, 
-    r="Productividad (%)", 
-    theta="Ciudad", 
-    line_close=True, 
-    title="Índice de Productividad por Ciudad"
-)
-st.plotly_chart(fig_radar)
-
-# Botón de exportar datos
-if st.button("Exportar datos"):
-    df_filtrado.to_csv("datos_chronos_manager.csv", index=False)
-    st.success("¡Datos exportados con éxito!")
+# Función para clasificar con explicación
+def identificar_categoria_con_explicacion(descripcion_horario):
+    prompt = f"""
+    Clasifica el siguiente registro: '{descripcion_horario}' en una de estas categorías:
+    - trabajo (si es relacionado con horarios regulares o tareas programadas)
+    - ausencias (si es un permiso o ausencia de un empleado)
+    - horas_extra (si es una tarea realizada fuera del horario regular)
     
-    # Crear un gráfico de barras para comparar la productividad de las ciudades
-fig_productividad = px.bar(
-    df_grouped, 
-    x="Ciudad", 
-    y="Productividad (%)", 
-    title="Comparación de la Productividad por Ciudad", 
-    color="Ciudad",
-    labels={"Productividad (%)": "Productividad (%)", "Ciudad": "Ciudad"},
-    color_discrete_sequence=px.colors.qualitative.Set2
+    Además, proporciona una breve explicación del porqué el registro pertenece a esa categoría.
+    """
+    respuesta = modelo.generate_content(prompt)
+    return respuesta.text.strip()
+
+# Configuración de la página
+st.set_page_config(
+    page_title="Clasificador de Horarios - Chronos Manager",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.plotly_chart(fig_productividad)
+# CSS personalizado
+st.markdown("""
+    <style>
+    .categoria-card {
+        background: linear-gradient(135deg, #2ecc71, #3498db);
+        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        color: #fff;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+    .categoria-card:hover {
+        transform: scale(1.1);
+        box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.5);
+    }
+    .resultado {
+        padding: 1rem;
+        background-color: #34495e;
+        color: white;
+        text-align: center;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Inicializar estado
+if 'categoria_seleccionada' not in st.session_state:
+    st.session_state.categoria_seleccionada = None
+
+# Layout principal
+st.title("⏰ Clasificador de Horarios - Chronos Manager IA")
+
+# Entrada de texto para clasificar
+horario = st.text_input("¿Qué registro deseas clasificar?", placeholder="Ejemplo: entrada de 8:00 AM")
+
+if st.button("Buscar"):
+    if horario:
+        with st.spinner("Analizando..."):
+            resultado = identificar_categoria_con_explicacion(horario)
+            st.session_state.categoria_seleccionada = resultado
+            st.markdown(f"""
+                <div class='resultado'>
+                    <h3>Resultado:</h3>
+                    <p>{resultado}</p>
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.warning("Por favor, ingresa un registro para clasificar.")
+
+# Mostrar tarjetas de categorías
+st.markdown("## Categorías disponibles")
+cols = st.columns(3)
+for i, (categoria, datos) in enumerate(datos_horarios.items()):
+    with cols[i]:
+        st.markdown(f"""
+            <div class='categoria-card' style="border-left: 5px solid {datos['color']}">
+                <div><b>{datos['icono']} {categoria.title()}</b></div>
+                <p>{datos['descripcion']}</p>
+                <p><i>Ejemplos: {', '.join(datos['ejemplos'])}</i></p>
+            </div>
+        """, unsafe_allow_html=True)
+
+# Subida de archivo CSV
+archivo = st.file_uploader("Sube un archivo CSV para clasificar registros", type=["csv"])
+if archivo:
+    df = pd.read_csv(archivo)
+    st.dataframe(df.head())
+    
+    if "Registro" in df.columns:
+        with st.spinner("Clasificando registros..."):
+            df['Categoría'] = df['Registro'].apply(identificar_categoria_con_explicacion)
+        st.dataframe(df)
+    else:
+        st.error("El archivo debe contener una columna llamada 'Registro'.")
+
+# Gráfica de resultados interactiva
+if archivo:
+    categorias = df['Categoría'].value_counts().reset_index()
+    categorias.columns = ['Categoría', 'Conteo']
+
+    fig = px.pie(
+        categorias, 
+        values='Conteo', 
+        names='Categoría', 
+        title='Distribución de Categorías de Horarios',
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+    st.plotly_chart(fig)
+
+# Función para responder preguntas sobre el controlador de horarios
+def responder_pregunta(pregunta):
+    prompt = f"""
+    Estoy construyendo un proyecto llamado "Controlador de Horarios". Este proyecto gestiona y clasifica registros de horarios de empleados en diferentes categorías como trabajo, ausencias y horas extras.
+    
+    Aquí está la pregunta: "{pregunta}"
+    
+    Por favor, proporciona una respuesta detallada y útil.
+    """
+    respuesta = modelo.generate_content(prompt)
+    return respuesta.text.strip()
+
+# Entrada de texto para preguntas
+pregunta = st.text_input("Haz una pregunta sobre el Controlador de Horarios")
+
+if st.button("Responder"):
+    if pregunta:
+        with st.spinner("Generando respuesta..."):
+            respuesta_pregunta = responder_pregunta(pregunta)
+            st.markdown(f"""
+                <div class='resultado'>
+                    <h3>Respuesta:</h3>
+                    <p>{respuesta_pregunta}</p>
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.warning("Por favor, ingresa una pregunta sobre el Controlador de Horarios.")
