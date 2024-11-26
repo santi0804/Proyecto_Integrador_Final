@@ -83,7 +83,7 @@ if 'categoria_seleccionada' not in st.session_state:
     st.session_state.categoria_seleccionada = None
 
 # Layout principal
-st.title("⏰ Clasificador de Horarios - Chronos Manager IA")
+st.title("⏰ IA Geminis - Chronos Manager")
 
 # Entrada de texto para clasificar
 horario = st.text_input("¿Qué registro deseas clasificar?", placeholder="Ejemplo: entrada de 8:00 AM")
